@@ -3,12 +3,32 @@ import axie from "../tile.jpeg";
 import { useLocation, useParams } from 'react-router-dom';
 import MarketplaceJSON from "../Marketplace.json";
 import axios from "axios";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { GetIpfsUrlFromPinata } from "../utils";
 
 export default function NFTPage (props) {
 
 const [data, updateData] = useState({});
+const { tokenId } = useParams();
+
+useEffect(() => {
+    // Fetch NFT data using tokenId and update state
+    async function fetchNFTData() {
+        const response = await axios.get(`/api/nft/${tokenId}`);
+        updateData(response.data);
+    }
+    fetchNFTData();
+}, [tokenId]);
+
+async function buyNFT(tokenId) {
+    // Implement the logic to buy NFT
+    try {
+        const response = await axios.post(`/api/buy/${tokenId}`);
+        updateMessage("Purchase successful!");
+    } catch (error) {
+        updateMessage("Purchase failed. Please try again.");
+    }
+}
 const [message, updateMessage] = useState("");
 const [currAddress, updateCurrAddress] = useState("0x");
 

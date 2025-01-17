@@ -130,27 +130,57 @@ for (uint i=0; i < totalItemCount; i++) {
     }
 
     function executeSale(uint256 tokenId) public payable {
+    uint price = idToListedToken[tokenId].price;
+    require(msg.value == price, "Please pay the asking price to execute the sale");
 
-        uint price = idToListedToken[tokenId].price;
-        require(msg.value == price, "Please pay the asking price to execute the sale");
+    // Get the seller's address
+    address payable seller = idToListedToken[tokenId].seller;
+
+    // Ensure the token is currently listed
+    require(idToListedToken[tokenId].currentlyListed, "Token is not currently listed for sale");
+
+    // Ensure the buyer is not the seller
+    require(msg.sender != seller, "Seller cannot buy their own token");
+
+    // Update token details to reflect the sale
+    idToListedToken[tokenId].currentlyListed = false;
+    idToListedToken[tokenId].seller = payable(msg.sender); // Update seller to the new owner
+    idToListedToken[tokenId].owner = payable(msg.sender); // Update ownership
+    _itemsSold.increment(); // Increment items sold counter
+
+    // Transfer the token from the contract to the buyer
+    _transfer(address(this), msg.sender, tokenId);
+
+    // Transfer the listing fee to the marketplace owner
+    payable(owner).transfer(listPrice);
+
+    // Transfer the sale proceeds (minus the listing fee) to the seller
+    seller.transfer(msg.value - listPrice);
+}
 
 
-        address seller = idToListedToken[tokenId].seller;
+    // function executeSale(uint256 tokenId) public payable {
+
+    //     uint price = idToListedToken[tokenId].price;
+    //     require(msg.value == price, "Please pay the asking price to execute the sale");
+
+
+    //     address seller = idToListedToken[tokenId].seller;
        
        
-        idToLIstedToken[tokenId].currentlyListed = true;
-        idToLIstedToken[tokenId].seller = payable(msg.sender);
-        _itemsSold.increment();
+    //     idToListedToken[tokenId].currentlyListed = true;
+    //     idToListedToken[tokenId].seller = payable(msg.sender);
+    //     _itemsSold.increment();
 
 
 
-        _payable(address(this), msg.sender, tokenId);
+    //     payable(address(this), msg.sender, tokenId);
 
-        approve(address(this), tokenId);
+    //     approve(address(this), tokenId);
 
-        payable(owner).transfer(listPrice);
-        payable(seller).transfer(msg.value);
+    //     payable(owner).transfer(listPrice);
+    //     payable(seller).transfer(msg.value);
 
-    }
+    // }
 
 }
